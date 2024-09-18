@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Form Pembagian Ahli Waris Islam</title>
+   <link rel="stylesheet" href="./css/index.css">
+   <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <h1>ChasoulUIX</h1>
+    </nav>
+
+    <div class="container">
+        <h2>Form Pembagian Ahli Waris</h2>
+        <form id="inheritanceForm">
+            <div class="form-group">
+                <label>Yang Meninggal:</label>
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="husband" name="deceased" value="husband">
+                    <label for="husband">Suami</label>
+                </div>
+                <div class="checkbox-wrapper">
+                    <input type="checkbox" id="wife" name="deceased" value="wife">
+                    <label for="wife">Istri</label>
+                </div>
+            </div>
+
+            <div class="form-group" id="assetValue" style="display: none;">
+                <label for="asset">Nilai Aset/Harta yang Ditinggalkan:</label>
+                <input type="text" id="asset" name="asset" placeholder="Masukkan nilai aset">
+            </div>
+
+            <div class="form-group" id="heirsGroup">
+                <label>Ahli Waris:</label>
+                <!-- Checkbox untuk ahli waris akan ditambahkan secara dinamis menggunakan JavaScript -->
+            </div>
+        </form>
+    </div>
+    <!-- <button id="calculateInheritance">Hitung Pembagian Waris</button> -->
+    <button id="themeToggle" style="position: fixed; top: 20px; right: 20px;">🌓</button>
+
+    <script src="./js/index.js"></script>
+</body>
+</html>
