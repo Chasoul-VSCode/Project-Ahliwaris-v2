@@ -5,7 +5,7 @@ const heirsGroup = document.getElementById('heirsGroup');
 const assetInput = document.getElementById('asset');
 const calculateButton = document.createElement('button');
 calculateButton.id = 'calculateInheritance';
-calculateButton.textContent = 'Hitung Pembagian Waris';
+calculateButton.textContent = 'Hitung';
 form.appendChild(calculateButton);
 
 // ... (previous code for UI and form handling remains the same)
