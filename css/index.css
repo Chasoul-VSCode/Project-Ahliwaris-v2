@@ -54,6 +54,24 @@ input[type="number"] {
     font-size: 16px;
 }
 
+#calculateInheritance {
+    display: block;
+    width: 30%;
+    padding: 1rem;
+    background-color: #3a7bc8;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin-top: 1.5rem;
+}
+
+#calculateInheritance:hover {
+    background-color: #3a7bc8;
+}
+
 #assetValue {
     display: none;
     animation: fadeIn 0.5s ease-out;

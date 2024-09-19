@@ -8,6 +8,8 @@ calculateButton.id = 'calculateInheritance';
 calculateButton.textContent = 'Hitung';
 form.appendChild(calculateButton);
 
+// ... (previous code for UI and form handling remains the same)
+
 function calculateInheritance() {
     const asset = parseInt(assetInput.value.replace(/\D/g, ''));
     if (isNaN(asset) || asset <= 0) {
@@ -19,99 +21,61 @@ function calculateInheritance() {
     const shares = {};
     let remainingShare = 1; // 100% of the asset
 
+    // Function to subtract a share from the remaining share
     const subtractShare = (share) => {
         remainingShare -= share;
         return share;
     };
 
-    const hasSons = selectedHeirs.includes('sonChild');
-    const hasDaughters = selectedHeirs.includes('daughterChild');
-    const hasChildren = hasSons || hasDaughters;
-    const hasGrandchildren = selectedHeirs.includes('sonGrandchild') || selectedHeirs.includes('daughterGrandchild');
-
     // Spouse
     if (selectedHeirs.includes('wife')) {
-        shares['wife'] = subtractShare(hasChildren || hasGrandchildren ? 1/8 : 1/4);
+        shares['wife'] = subtractShare(selectedHeirs.includes('sonChild') || selectedHeirs.includes('daughterChild') || selectedHeirs.includes('sonGrandchild') || selectedHeirs.includes('daughterGrandchild') ? 1/8 : 1/4);
     }
     if (selectedHeirs.includes('husband')) {
-        shares['husband'] = subtractShare(hasChildren || hasGrandchildren ? 1/4 : 1/2);
+        shares['husband'] = subtractShare(selectedHeirs.includes('sonChild') || selectedHeirs.includes('daughterChild') || selectedHeirs.includes('sonGrandchild') || selectedHeirs.includes('daughterGrandchild') ? 1/4 : 1/2);
     }
 
     // Parents
-    const hasFather = selectedHeirs.includes('father');
-    const hasMother = selectedHeirs.includes('mother');
-
-    if (hasMother) {
-        if (hasChildren || hasGrandchildren || (selectedHeirs.filter(heir => heir.includes('Brother') || heir.includes('Sister')).length >= 2)) {
-            shares['mother'] = subtractShare(1/6);
-        } else {
-            shares['mother'] = subtractShare(1/3);
-        }
+    if (selectedHeirs.includes('mother')) {
+        const hasChildren = selectedHeirs.includes('sonChild') || selectedHeirs.includes('daughterChild') || selectedHeirs.includes('sonGrandchild') || selectedHeirs.includes('daughterGrandchild');
+        const hasSiblings = selectedHeirs.includes('fullBrother') || selectedHeirs.includes('fullSister') || selectedHeirs.includes('paternalBrother') || selectedHeirs.includes('paternalSister') || selectedHeirs.includes('maternalSibling');
+        shares['mother'] = subtractShare(hasChildren || hasSiblings ? 1/6 : 1/3);
+    }
+    if (selectedHeirs.includes('father')) {
+        shares['father'] = subtractShare(1/6); // Father always gets at least 1/6
     }
 
-    if (hasFather) {
-        if (hasChildren || hasGrandchildren) {
-            shares['father'] = subtractShare(1/6);
-        }
-        // Father as asabah will be handled later
-    }
-
-    // Children
+    // Children and Grandchildren
+    const hasChildren = selectedHeirs.includes('sonChild') || selectedHeirs.includes('daughterChild');
+    const hasGrandchildren = !hasChildren && (selectedHeirs.includes('sonGrandchild') || selectedHeirs.includes('daughterGrandchild'));
+    
     if (hasChildren) {
         const sons = selectedHeirs.filter(heir => heir === 'sonChild').length;
         const daughters = selectedHeirs.filter(heir => heir === 'daughterChild').length;
+        const totalShares = sons * 2 + daughters;
         
-        if (sons > 0) {
-            // Sons and daughters share as asabah, with sons getting twice the share of daughters
-            const totalShares = sons * 2 + daughters;
-            shares['sonChild'] = remainingShare * (2 * sons / totalShares);
-            if (daughters > 0) {
-                shares['daughterChild'] = remainingShare * (daughters / totalShares);
-            }
-        } else {
-            // Only daughters
-            if (daughters === 1) {
-                shares['daughterChild'] = subtractShare(1/2);
-            } else {
-                const daughterShare = subtractShare(2/3);
-                shares['daughterChild'] = daughterShare / daughters;
-            }
-        }
+        if (sons > 0) shares['sonChild'] = (remainingShare * 2 * sons) / totalShares;
+        if (daughters > 0) shares['daughterChild'] = (remainingShare * daughters) / totalShares;
+        
+        remainingShare = 0; // Children consume all remaining shares
     } else if (hasGrandchildren) {
-        // Apply similar logic for grandchildren as for children
         const grandsons = selectedHeirs.filter(heir => heir === 'sonGrandchild').length;
         const granddaughters = selectedHeirs.filter(heir => heir === 'daughterGrandchild').length;
+        const totalShares = grandsons * 2 + granddaughters;
         
-        if (grandsons > 0) {
-            const totalShares = grandsons * 2 + granddaughters;
-            shares['sonGrandchild'] = remainingShare * (2 * grandsons / totalShares);
-            if (granddaughters > 0) {
-                shares['daughterGrandchild'] = remainingShare * (granddaughters / totalShares);
-            }
-        } else {
-            // Only granddaughters
-            if (granddaughters === 1) {
-                shares['daughterGrandchild'] = subtractShare(1/2);
-            } else {
-                const granddaughterShare = subtractShare(2/3);
-                shares['daughterGrandchild'] = granddaughterShare / granddaughters;
-            }
-        }
+        if (grandsons > 0) shares['sonGrandchild'] = (remainingShare * 2 * grandsons) / totalShares;
+        if (granddaughters > 0) shares['daughterGrandchild'] = (remainingShare * granddaughters) / totalShares;
+        
+        remainingShare = 0; // Grandchildren consume all remaining shares
     }
 
     // Siblings (when there are no children, grandchildren, or father)
-    if (!hasChildren && !hasGrandchildren && !hasFather) {
+    if (!hasChildren && !hasGrandchildren && !selectedHeirs.includes('father')) {
         const fullBrothers = selectedHeirs.filter(heir => heir === 'fullBrother').length;
         const fullSisters = selectedHeirs.filter(heir => heir === 'fullSister').length;
         const paternalBrothers = selectedHeirs.filter(heir => heir === 'paternalBrother').length;
         const paternalSisters = selectedHeirs.filter(heir => heir === 'paternalSister').length;
         const maternalSiblings = selectedHeirs.filter(heir => heir === 'maternalSibling').length;
-
-        // Maternal siblings
-        if (maternalSiblings > 0) {
-            const maternalShare = maternalSiblings > 1 ? 1/3 : 1/6;
-            shares['maternalSibling'] = subtractShare(maternalShare) / maternalSiblings;
-        }
 
         // Full siblings
         if (fullBrothers > 0 || fullSisters > 0) {
@@ -127,22 +91,32 @@ function calculateInheritance() {
             if (paternalSisters > 0) shares['paternalSister'] = (remainingShare * paternalSisters) / totalShares;
             remainingShare = 0;
         }
+        // Maternal siblings
+        if (maternalSiblings > 0) {
+            const maternalShare = maternalSiblings > 1 ? 1/3 : 1/6;
+            shares['maternalSibling'] = subtractShare(maternalShare) / maternalSiblings;
+        }
     }
 
-    // Asabah (residuary heirs)
+    // Paternal uncle and cousin (when there are no closer heirs)
     if (remainingShare > 0) {
-        if (hasFather) {
-            shares['father'] = (shares['father'] || 0) + remainingShare;
-        } else if (hasSons) {
-            shares['sonChild'] += remainingShare;
-        } else if (selectedHeirs.includes('fullBrother')) {
-            shares['fullBrother'] = (shares['fullBrother'] || 0) + remainingShare;
-        } else if (selectedHeirs.includes('paternalBrother')) {
-            shares['paternalBrother'] = (shares['paternalBrother'] || 0) + remainingShare;
-        } else if (selectedHeirs.includes('paternalUncle')) {
+        if (selectedHeirs.includes('paternalUncle')) {
             shares['paternalUncle'] = remainingShare;
         } else if (selectedHeirs.includes('paternalUnclesSon')) {
             shares['paternalUnclesSon'] = remainingShare;
+        }
+    }
+
+    // Distribute any remaining share to asabah (residuary heirs)
+    if (remainingShare > 0) {
+        if (selectedHeirs.includes('father')) {
+            shares['father'] += remainingShare;
+        } else if (selectedHeirs.includes('sonChild')) {
+            shares['sonChild'] += remainingShare;
+        } else if (selectedHeirs.includes('fullBrother')) {
+            shares['fullBrother'] += remainingShare;
+        } else if (selectedHeirs.includes('paternalBrother')) {
+            shares['paternalBrother'] += remainingShare;
         }
     }
 
@@ -162,8 +136,6 @@ function calculateInheritance() {
         confirmButtonText: 'Tutup'
     });
 }
-
-// ... (rest of the code remains the same)
 
 calculateButton.addEventListener('click', (e) => {
     e.preventDefault();
